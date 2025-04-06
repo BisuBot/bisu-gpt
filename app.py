@@ -1,33 +1,28 @@
 import streamlit as st
-import openai
+import requests
 import os
 
-# Load API key from Streamlit secrets
-openai.api_key = st.secrets["OPENROUTER_API_KEY"]
-openai.api_base = "https://openrouter.ai/api/v1"
+st.title("BisuGPT using OpenRouter")
 
-# Optional: Add custom headers
-openai.requestssession = openai.requests.Session()
-openai.requestssession.headers.update({
-    "HTTP-Referer": "https://bisubot.streamlit.app",  # Change to your actual app URL
-    "X-Title": "BisuGPT"
-})
-
-# Streamlit app UI
-st.title("BisuGPT")
-st.markdown("Ask anything to your friendly assistant!")
-
-user_input = st.text_input("Enter your question:")
+user_input = st.text_input("Ask BisuGPT anything:")
 
 if user_input:
-    try:
-        response = openai.ChatCompletion.create(
-            model="openai/gpt-3.5-turbo",  # Or "anthropic/claude-2", etc.
-            messages=[
-                {"role": "system", "content": "You are BisuGPT, a smart and helpful assistant."},
-                {"role": "user", "content": user_input}
-            ]
-        )
-        st.write(response.choices[0].message.content)
-    except Exception as e:
-        st.error(f"Error: {e}")
+    api_key = os.getenv("OPENROUTER_API_KEY")  # Set this in your secrets
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": "https://your-domain.com",  # Put your website or GitHub link
+        "X-Title": "BisuGPT"
+    }
+
+    data = {
+        "model": "openai/gpt-3.5-turbo",  # or "openai/gpt-4" etc.
+        "messages": [{"role": "user", "content": user_input}]
+    }
+
+    response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+
+    if response.status_code == 200:
+        reply = response.json()['choices'][0]['message']['content']
+        st.write(reply)
+    else:
+        st.error("Something went wrong. Check your API key or model choice.")
