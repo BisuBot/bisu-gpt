@@ -1,5 +1,6 @@
 import streamlit as st 
-import requests import os
+import requests 
+import os
 
 st.set_page_config(page_title="BisuGPT - Powered by Meta LLaMA 4") st.title("BisuGPT") st.write("A custom AI chatbot powered by Meta's LLaMA 4 model via OpenRouter.")
 
