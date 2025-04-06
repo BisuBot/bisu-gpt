@@ -1,20 +1,33 @@
 import streamlit as st
-from openai import OpenAI
+import openai
+import os
 
-# Load your API key from Streamlit secrets
-client = OpenAI(api_key=st.secrets["openai"]["api_key"])
+# Load API key from Streamlit secrets
+openai.api_key = st.secrets["OPENROUTER_API_KEY"]
+openai.api_base = "https://openrouter.ai/api/v1"
 
-st.title("BisuGPT - Your Office Buddy")
+# Optional: Add custom headers
+openai.requestssession = openai.requests.Session()
+openai.requestssession.headers.update({
+    "HTTP-Referer": "https://bisubot.streamlit.app",  # Change to your actual app URL
+    "X-Title": "BisuGPT"
+})
 
-user_input = st.text_input("Type your question to BisuGPT...")
+# Streamlit app UI
+st.title("BisuGPT")
+st.markdown("Ask anything to your friendly assistant!")
+
+user_input = st.text_input("Enter your question:")
 
 if user_input:
-    with st.spinner("Thinking..."):
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+    try:
+        response = openai.ChatCompletion.create(
+            model="openai/gpt-3.5-turbo",  # Or "anthropic/claude-2", etc.
             messages=[
-                {"role": "system", "content": "You are BisuGPT, an expert office assistant who knows everything about office politics, PNIR rules, and claims work."},
+                {"role": "system", "content": "You are BisuGPT, a smart and helpful assistant."},
                 {"role": "user", "content": user_input}
             ]
         )
         st.write(response.choices[0].message.content)
+    except Exception as e:
+        st.error(f"Error: {e}")
